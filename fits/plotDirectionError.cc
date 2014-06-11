@@ -1,6 +1,6 @@
 #include <rootPlotUtil.hh>
-//#include <plotDirectionError.hh>
 
+#include <TROOT.h>
 #include <TH1F.h>
 #include <TGraph.h>
 #include <TCanvas.h>
@@ -9,8 +9,8 @@
 #include <TString.h>
 #include <TLatex.h>
 
-#include <RAT/DSReader.hh>
-#include <RAT/DS/Root.hh>
+#include <RAT/DU/DSReader.hh>
+#include <RAT/DS/Entry.hh>
 #include <RAT/DS/EV.hh>
 #include <RAT/DS/MC.hh>
 #include <RAT/DS/MCParticle.hh>
@@ -30,7 +30,7 @@ void printDirectionErrorCanvases(string filePrefix);
 void plotDirectionError(string fileName, string fitName, string plotName="", bool clear=true);
 void plotDirectionError(string fileName, vector<string> fitNames, const vector<string> plotNames = vector<string>(), bool clear=true);
 void plotDirectionError(vector<string> fileNames, vector<string> fitNames, const vector<string> plotNames = vector<string>(), bool clear=true);
-void plotDirectionError(RAT::DSReader& dsReader, vector<string> fitNames, vector<string> plotNames, bool clear=true);
+void plotDirectionError(RAT::DU::DSReader& dsReader, vector<string> fitNames, vector<string> plotNames, bool clear=true);
 
 
 
@@ -47,7 +47,7 @@ void printDirectionErrorCanvases(string filePrefix)
 
 void plotDirectionError(string fileName, string fitName, string plotName, bool clear)
 {
-  RAT::DSReader dsReader(fileName.c_str());
+  RAT::DU::DSReader dsReader(fileName.c_str());
   vector<string> fitNames;
   vector<string> plotNames;
   fitNames.push_back(fitName);
@@ -59,14 +59,14 @@ void plotDirectionError(string fileName, string fitName, string plotName, bool c
 
 void plotDirectionError(string fileName, vector<string> fitNames, const vector<string> plotNames, bool clear)
 {
-  RAT::DSReader dsReader(fileName.c_str());
+  RAT::DU::DSReader dsReader(fileName.c_str());
   plotDirectionError(dsReader, fitNames, plotNames, clear);
 }
 
 
 void plotDirectionError(vector<string> fileNames, vector<string> fitNames, const vector<string> plotNames, bool clear)
 {
-  RAT::DSReader dsReader(fileNames[0].c_str());
+  RAT::DU::DSReader dsReader(fileNames[0].c_str());
   for(unsigned int i=1;i<fileNames.size();i++)
       dsReader.Add(fileNames[i].c_str());
   plotDirectionError(dsReader, fitNames, plotNames, clear);
@@ -75,7 +75,7 @@ void plotDirectionError(vector<string> fileNames, vector<string> fitNames, const
 
 // Plots errors on x, y, z and time.
 
-void plotDirectionError(RAT::DSReader& dsReader, vector<string> fitNames, vector<string> plotNames, bool clear)
+void plotDirectionError(RAT::DU::DSReader& dsReader, vector<string> fitNames, vector<string> plotNames, bool clear)
 {
 
   vector<TH1F*> histsDot;
@@ -91,31 +91,31 @@ void plotDirectionError(RAT::DSReader& dsReader, vector<string> fitNames, vector
       histsDot.push_back( CreateHist( "hDirErr"+plotNames[i], ";"+xTitle, kDirectionErrorBins, kDirectionErrorLow, kDirectionErrorHigh) );
     }
   
-  cout << "Total entries: " << dsReader.GetTotal() << endl;
+  cout << "Total entries: " << dsReader.GetEntryCount() << endl;
 
-  for(int i=0; i<dsReader.GetTotal(); i++)
+  for(size_t i=0; i<dsReader.GetEntryCount(); i++)
     {
 
-      if(dsReader.GetTotal() > 100)
-        if(i % (dsReader.GetTotal() / 20) == 0)
+      if(dsReader.GetEntryCount() > 100)
+        if(i % (dsReader.GetEntryCount() / 20) == 0)
           cerr << "*";
 
-      RAT::DS::Root* rds = dsReader.GetEvent(i);
+      const RAT::DS::Entry& rds = dsReader.GetEntry(i);
 
-      if(rds->GetEVCount()==0)
+      if(rds.GetEVCount()==0)
         continue;
 
-      RAT::DS::EV* ev = rds->GetEV( 0 );
-      RAT::DS::MC* mc = rds->GetMC();
-      RAT::DS::MCParticle* mcp = mc->GetMCParticle( 0 );
-      TVector3 mcDirection = mcp->GetMom().Unit();
+      const RAT::DS::EV& ev = rds.GetEV( 0 );
+      const RAT::DS::MC& mc = rds.GetMC();
+      const RAT::DS::MCParticle& mcp = mc.GetMCParticle( 0 );
+      TVector3 mcDirection = mcp.GetMomentum().Unit();
 
       // Now get the different fit positions and compare
       
       for(unsigned int j=0; j<fitNames.size(); j++)
         {
 
-          RAT::DS::FitVertex fitVertex = ev->GetFitResult(fitNames[j]).GetVertex(0);
+          const RAT::DS::FitVertex& fitVertex = ev.GetFitResult(fitNames[j]).GetVertex(0);
 
           // For some fits may also need to consider whether the positions seed was valid
           
