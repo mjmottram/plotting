@@ -7,6 +7,7 @@
   gROOT->ProcessLine(".L ${ROOTPLOTTING}/fits/plotPositionUncertainties.cc+");
   gROOT->ProcessLine(".L ${ROOTPLOTTING}/fits/plotRadiusError.cc+");
   gROOT->ProcessLine(".L ${ROOTPLOTTING}/fits/plotTimeError.cc+");
+  gROOT->ProcessLine(".L ${ROOTPLOTTING}/fits/plotEnergyError.cc+");
   gROOT->ProcessLine(".L ${ROOTPLOTTING}/fits/plotTimeUncertanties.cc+");
   gROOT->ProcessLine(".L ${ROOTPLOTTING}/fits/reportMisreconPosition.cc+");
   gROOT->ProcessLine(".L ${ROOTPLOTTING}/fits/summariseError.cc+"); 

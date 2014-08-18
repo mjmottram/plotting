@@ -76,9 +76,9 @@ void plotEnergyError(vector<string> fileNames, vector<string> fitNames, const ve
 void plotEnergyError(RAT::DSReader& dsReader, vector<string> fitNames, vector<string> plotNames, bool clear)
 {
 
-  vector<TH1F*> histsDot;
-
-  string xTitle = "E_{Fit} - E_{MC}"
+  vector<TH1F*> histsEnergy;
+  
+  string xTitle = "E_{Fit} - E_{MC}";
 
   if(plotNames.size()==0)
     plotNames = fitNames;
@@ -103,7 +103,8 @@ void plotEnergyError(RAT::DSReader& dsReader, vector<string> fitNames, vector<st
 
       RAT::DS::EV* ev = rds->GetEV( 0 );
       RAT::DS::MC* mc = rds->GetMC();
-      double mcEnergy = mc->GetTotScintEdep();
+      //      double mcEnergy = mc->GetTotScintEdep();
+      double mcEnergy = mc->GetMCParticle(0)->GetKE();
 
       // Now get the different fit positions and compare
       
@@ -117,7 +118,7 @@ void plotEnergyError(RAT::DSReader& dsReader, vector<string> fitNames, vector<st
           if(fitVertex.ContainsEnergy() && fitVertex.ValidEnergy())
             {
               double fitEnergy = fitVertex.GetEnergy();
-              histsDot[j]->Fill( fitEnergy - mcEnergy );
+              histsEnergy[j]->Fill( fitEnergy - mcEnergy );
             }
         }
 
@@ -139,10 +140,10 @@ void plotEnergyError(RAT::DSReader& dsReader, vector<string> fitNames, vector<st
         draw = "SAMES";
 
       TVirtualPad* cPadDot = canEnergyError->cd();
-      histsDot[i]->SetLineColor(GetColor(firstDraw));
-      histsDot[i]->Draw(draw.c_str());
+      histsEnergy[i]->SetLineColor(GetColor(firstDraw));
+      histsEnergy[i]->Draw(draw.c_str());
       canEnergyError->Update();
-      ArrangeStatBox(histsDot[i], GetColor(firstDraw), cPadDot, plotNames[i], 0.15, 0.35);
+      ArrangeStatBox(histsEnergy[i], GetColor(firstDraw), cPadDot, plotNames[i], 0.15, 0.35);
 
       firstDraw++;
 
