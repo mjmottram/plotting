@@ -13,6 +13,7 @@
 #include <TGraph.h>
 #include <TCanvas.h>
 #include <TLegend.h>
+#include <TStyle.h>
 
 using namespace std;
 
@@ -21,6 +22,8 @@ void plotET1D(string index);
 void plotET1D(vector<string> indexes);
 void plotGV1D(string index);
 void plotGV1D(vector<string> indexes);
+void plotFitDir(string index);
+void plotFitDir(vector<string> indexes);
 
 //////////////////////////////////////////////////////
 // Utility functions
@@ -119,6 +122,65 @@ void plotGV1D(vector<string> indexes)
 
       gr->Draw("al");
       gr->SetName(("gGV1D" + indexes[i]).c_str());
+
+      gr->SetTitle( ("GV1D: " + indexes[i]).c_str() );
+
+      gPad->SetLogy();
+      gr->GetXaxis()->SetTitle("Time residuals [ns]");
+      gr->GetYaxis()->SetTitle("Probability [arb]");
+
+    }
+
+
+}
+
+
+
+
+void plotFitDir(string index)
+{
+  vector<string> indexes;
+  indexes.push_back(index);
+  plotFitDir(indexes);
+}
+
+void plotFitDir(vector<string> indexes)
+{
+
+  initDB();
+
+  gStyle->SetTitleOffset(1.4, "X");
+  gStyle->SetTitleOffset(1.2, "Y");
+  vector<TGraph*> graphs;
+
+  TCanvas *can = new TCanvas("canFitDir", "canFitDir");
+  can->cd();
+
+  for(unsigned int i=0; i<indexes.size(); i++)
+    {
+      RAT::DBLinkPtr FitDir = RAT::DB::Get()->GetLink("FIT_DIR", indexes[i]);
+      vector<double> times;
+      vector<double> probability;
+
+      times = FitDir->GetDArray( "angle" );
+      probability = FitDir->GetDArray( "probability" );
+  
+      TGraph *gr = new TGraph();
+
+      for(int i=0;i<times.size();i++)
+        gr->SetPoint(i, times[i], probability[i]);      
+
+      graphs.push_back( gr );
+
+      gr->Draw("al");
+      gr->SetName(("gFitDir" + indexes[i]).c_str());
+
+      gr->SetTitle( ("FitDir: " + indexes[i]).c_str() );
+
+      gPad->SetBottomMargin(0.13);
+      gPad->SetLeftMargin(0.11);
+      gr->GetXaxis()->SetTitle("cos^{-1}(#vec{d_{ev}}.(#vec{PMT} - #vec{r_{ev}})) [rad.]");
+      gr->GetYaxis()->SetTitle("Probability [arb]");
 
     }
 
