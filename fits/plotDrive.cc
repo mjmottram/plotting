@@ -1,5 +1,6 @@
 #include <rootPlotUtil.hh>
 
+#include <TROOT.h>
 #include <TH1F.h>
 #include <TGraph.h>
 #include <TCanvas.h>
@@ -8,8 +9,8 @@
 #include <TString.h>
 #include <TLatex.h>
 
-#include <RAT/DSReader.hh>
-#include <RAT/DS/Root.hh>
+#include <RAT/DU/DSReader.hh>
+#include <RAT/DS/Entry.hh>
 #include <RAT/DS/EV.hh>
 #include <RAT/DS/MC.hh>
 #include <RAT/DS/MCParticle.hh>
@@ -27,12 +28,12 @@ extern double kDriveHigh = 1000;
 void plotDrive(string fileName, string posFitName, string dirFitName, string plotName="", bool clear=true);
 void plotDrive(string fileName, vector<string> posFitNames, vector<string> dirFitNames, const vector<string> plotNames = vector<string>(), bool clear=true);
 void plotDrive(vector<string> fileNames, vector<string> posFitNames, vector<string> dirFitNames, const vector<string> plotNames = vector<string>(), bool clear=true);
-void plotDrive(RAT::DSReader& dsReader, vector<string> posFitNames, vector<string> dirFitNames, vector<string> plotNames, bool clear=true);
+void plotDrive(RAT::DU::DSReader& dsReader, vector<string> posFitNames, vector<string> dirFitNames, vector<string> plotNames, bool clear=true);
 
 
 void plotDrive(string fileName, string posFitName, string dirFitName, string plotName, bool clear)
 {
-  RAT::DSReader dsReader(fileName.c_str());
+  RAT::DU::DSReader dsReader(fileName.c_str());
   vector<string> posFitNames;
   vector<string> dirFitNames;
   vector<string> plotNames;
@@ -46,14 +47,14 @@ void plotDrive(string fileName, string posFitName, string dirFitName, string plo
 
 void plotDrive(string fileName, vector<string> posFitNames, vector<string> dirFitNames, const vector<string> plotNames, bool clear)
 {
-  RAT::DSReader dsReader(fileName.c_str());
+  RAT::DU::DSReader dsReader(fileName.c_str());
   plotDrive(dsReader, posFitNames, dirFitNames, plotNames, clear);
 }
 
 
 void plotDrive(vector<string> fileNames, vector<string> posFitNames, vector<string> dirFitNames, const vector<string> plotNames, bool clear)
 {
-  RAT::DSReader dsReader(fileNames[0].c_str());
+  RAT::DU::DSReader dsReader(fileNames[0].c_str());
   for(unsigned int i=1;i<fileNames.size();i++)
       dsReader.Add(fileNames[i].c_str());
   plotDrive(dsReader, posFitNames, dirFitNames, plotNames, clear);
@@ -62,7 +63,7 @@ void plotDrive(vector<string> fileNames, vector<string> posFitNames, vector<stri
 
 // Plots errors on x, y, z and time.
 
-void plotDrive(RAT::DSReader& dsReader, vector<string> posFitNames, vector<string> dirFitNames, vector<string> plotNames, bool clear)
+void plotDrive(RAT::DU::DSReader& dsReader, vector<string> posFitNames, vector<string> dirFitNames, vector<string> plotNames, bool clear)
 {
 
   vector<TH1F*> histsDriveMC;
@@ -92,33 +93,33 @@ void plotDrive(RAT::DSReader& dsReader, vector<string> posFitNames, vector<strin
       histsDriveFitFrac.push_back( CreateHist( "hDriveFitFrac"+plotNames[i], ";"+driveFitFracTitle, 200, -1, 1) );
     }
   
-  cout << "Total entries: " << dsReader.GetTotal() << endl;
+  cout << "Total entries: " << dsReader.GetEntryCount() << endl;
 
-  for(int i=0; i<dsReader.GetTotal(); i++)
+  for(size_t i=0; i<dsReader.GetEntryCount(); i++)
     {
 
-      if(dsReader.GetTotal() > 100)
-        if(i % (dsReader.GetTotal() / 20) == 0)
+      if(dsReader.GetEntryCount() > 100)
+        if(i % (dsReader.GetEntryCount() / 20) == 0)
           cerr << "*";
 
-      RAT::DS::Root* rds = dsReader.GetEvent(i);
+      const RAT::DS::Entry& rds = dsReader.GetEntry(i);
 
-      if(rds->GetEVCount()==0)
+      if(rds.GetEVCount()==0)
         continue;
 
-      RAT::DS::EV* ev = rds->GetEV( 0 );
-      RAT::DS::MC* mc = rds->GetMC();
-      RAT::DS::MCParticle* mcp = mc->GetMCParticle( 0 );
-      TVector3 mcPosition = mcp->GetPos();
-      TVector3 mcDirection = mcp->GetMom().Unit();
+      const RAT::DS::EV& ev = rds.GetEV( 0 );
+      const RAT::DS::MC& mc = rds.GetMC();
+      const RAT::DS::MCParticle& mcp = mc.GetMCParticle( 0 );
+      TVector3 mcPosition = mcp.GetPosition();
+      TVector3 mcDirection = mcp.GetMomentum().Unit();
 
       // Now get the different fit positions and compare
       
       for(unsigned int j=0; j<posFitNames.size(); j++)
         {
 
-          RAT::DS::FitVertex posFitVertex = ev->GetFitResult(posFitNames[j]).GetVertex(0);
-          RAT::DS::FitVertex dirFitVertex = ev->GetFitResult(dirFitNames[j]).GetVertex(0);
+          const RAT::DS::FitVertex& posFitVertex = ev.GetFitResult(posFitNames[j]).GetVertex(0);
+          const RAT::DS::FitVertex& dirFitVertex = ev.GetFitResult(dirFitNames[j]).GetVertex(0);
 
           // For some fits may also need to consider whether the positions seed was valid
           

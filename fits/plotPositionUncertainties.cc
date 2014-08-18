@@ -1,5 +1,6 @@
 #include <rootPlotUtil.hh>
 
+#include <TROOT.h>
 #include <TH1F.h>
 #include <TGraph.h>
 #include <TCanvas.h>
@@ -8,8 +9,8 @@
 #include <TString.h>
 #include <TLatex.h>
 
-#include <RAT/DSReader.hh>
-#include <RAT/DS/Root.hh>
+#include <RAT/DU/DSReader.hh>
+#include <RAT/DS/Entry.hh>
 #include <RAT/DS/EV.hh>
 #include <RAT/DS/MC.hh>
 #include <RAT/DS/MCParticle.hh>
@@ -25,12 +26,12 @@
 void plotPositionUncertainties(string fileName, string fitName, string plotName="", bool clear=true);
 void plotPositionUncertainties(string fileName, vector<string> fitNames, const vector<string> plotNames = vector<string>(), bool clear=true);
 void plotPositionUncertainties(vector<string> fileNames, vector<string> fitNames, const vector<string> plotNames = vector<string>(), bool clear=true);
-void plotPositionUncertainties(RAT::DSReader& dsReader, vector<string> fitNames, vector<string> plotNames, bool clear=true);
+void plotPositionUncertainties(RAT::DU::DSReader& dsReader, vector<string> fitNames, vector<string> plotNames, bool clear=true);
 
 
 void plotPositionUncertainties(string fileName, string fitName, string plotName, bool clear)
 {
-  RAT::DSReader dsReader(fileName.c_str());
+  RAT::DU::DSReader dsReader(fileName.c_str());
   vector<string> fitNames;
   vector<string> plotNames;
   fitNames.push_back(fitName);
@@ -42,14 +43,14 @@ void plotPositionUncertainties(string fileName, string fitName, string plotName,
 
 void plotPositionUncertainties(string fileName, vector<string> fitNames, const vector<string> plotNames, bool clear)
 {
-  RAT::DSReader dsReader(fileName.c_str());
+  RAT::DU::DSReader dsReader(fileName.c_str());
   plotPositionUncertainties(dsReader, fitNames, plotNames, clear);
 }
 
 
 void plotPositionUncertainties(vector<string> fileNames, vector<string> fitNames, const vector<string> plotNames, bool clear)
 {
-  RAT::DSReader dsReader(fileNames[0].c_str());
+  RAT::DU::DSReader dsReader(fileNames[0].c_str());
   for(unsigned int i=1;i<fileNames.size();i++)
     dsReader.Add(fileNames[i].c_str());
   plotPositionUncertainties(dsReader, fitNames, plotNames, clear);
@@ -58,7 +59,7 @@ void plotPositionUncertainties(vector<string> fileNames, vector<string> fitNames
 
 // Plots errors on x, y, z and time.
 
-void plotPositionUncertainties(RAT::DSReader& dsReader, vector<string> fitNames, vector<string> plotNames, bool clear)
+void plotPositionUncertainties(RAT::DU::DSReader& dsReader, vector<string> fitNames, vector<string> plotNames, bool clear)
 {
   
   vector<TH1F*> histsX;
@@ -83,26 +84,26 @@ void plotPositionUncertainties(RAT::DSReader& dsReader, vector<string> fitNames,
   int nNoErr = 0;
   vector<int> nFailed(fitNames.size(), 0);
 
-  for(int i=0; i<dsReader.GetTotal(); i++)
+  for(size_t i=0; i<dsReader.GetEntryCount(); i++)
     {
 
-      if(dsReader.GetTotal() > 100)
-        if(i % (dsReader.GetTotal() / 20) == 0)
+      if(dsReader.GetEntryCount() > 100)
+        if(i % (dsReader.GetEntryCount() / 20) == 0)
           cerr << "*";
 
-      RAT::DS::Root* rds = dsReader.GetEvent(i);
+      const RAT::DS::Entry& rds = dsReader.GetEntry(i);
 
-      if(rds->GetEVCount()==0)
+      if(rds.GetEVCount()==0)
         continue;
 
-      RAT::DS::EV* ev = rds->GetEV( 0 );
+      const RAT::DS::EV& ev = rds.GetEV( 0 );
 
       // Now get the different fit positions and compare
       
       for(unsigned int j=0; j<fitNames.size(); j++)
         {
-          RAT::DS::FitVertex fitVertex = ev->GetFitResult(fitNames[j]).GetVertex(0);
-          TVector3 posPosErr = fitVertex.GetPosPositionError();
+          const RAT::DS::FitVertex& fitVertex = ev.GetFitResult(fitNames[j]).GetVertex(0);
+          TVector3 posPosErr = fitVertex.GetPositivePositionError();
           
           if(fitVertex.ContainsPosition() && fitVertex.ValidPosition())
             {

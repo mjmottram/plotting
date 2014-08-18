@@ -2,8 +2,8 @@
 
 #include <TH1F.h>
 
-#include <RAT/DSReader.hh>
-#include <RAT/DS/Root.hh>
+#include <RAT/DU/DSReader.hh>
+#include <RAT/DS/Entry.hh>
 #include <RAT/DS/EV.hh>
 #include <RAT/DS/MC.hh>
 #include <RAT/DS/MCParticle.hh>
@@ -18,12 +18,12 @@
 void reportMisreconPosition(string fileName, string fitName, double err=3.0, bool sigma=true);
 void reportMisreconPosition(string fileName, vector<string> fitNames, double err=3.0, bool sigma=true);
 void reportMisreconPosition(vector<string> fileNames, vector<string> fitNames, double err=3.0, bool sigma=true);
-void reportMisreconPosition(RAT::DSReader& dsReader, vector<string> fitNames, double err=3.0, bool sigma=true);
+void reportMisreconPosition(RAT::DU::DSReader& dsReader, vector<string> fitNames, double err=3.0, bool sigma=true);
 
 
 void reportMisreconPosition(string fileName, string fitName, double err, bool sigma)
 {
-  RAT::DSReader dsReader(fileName.c_str());
+  RAT::DU::DSReader dsReader(fileName.c_str());
   vector<string> fitNames;
   fitNames.push_back(fitName);
   reportMisreconPosition(dsReader, fitNames, err, sigma);
@@ -32,21 +32,21 @@ void reportMisreconPosition(string fileName, string fitName, double err, bool si
 
 void reportMisreconPosition(string fileName, vector<string> fitNames, double err, bool sigma)
 {
-  RAT::DSReader dsReader(fileName.c_str());
+  RAT::DU::DSReader dsReader(fileName.c_str());
   reportMisreconPosition(dsReader, fitNames, err, sigma);
 }
 
 
 void reportMisreconPosition(vector<string> fileNames, vector<string> fitNames, double err, bool sigma)
 {
-  RAT::DSReader dsReader(fileNames[0].c_str());
+  RAT::DU::DSReader dsReader(fileNames[0].c_str());
   for(unsigned int i=1;i<fileNames.size();i++)
     dsReader.Add(fileNames[i].c_str());
   reportMisreconPosition(dsReader, fitNames, err, sigma);
 }
 
 
-void reportMisreconPosition(RAT::DSReader& dsReader, vector<string> fitNames, double err, bool sigma)
+void reportMisreconPosition(RAT::DU::DSReader& dsReader, vector<string> fitNames, double err, bool sigma)
 {
   
   vector<TH1F*> histsX;
@@ -73,28 +73,28 @@ void reportMisreconPosition(RAT::DSReader& dsReader, vector<string> fitNames, do
       histsR.push_back( CreateHist( "hRTempErr"+pss.str(), " ", 1000, 0, rBound) );
     }
   
-  for(int i=0; i<dsReader.GetTotal(); i++)
+  for(size_t i=0; i<dsReader.GetEntryCount(); i++)
     {
 
-      if(dsReader.GetTotal() > 100)
-        if(i % (dsReader.GetTotal() / 20) == 0)
+      if(dsReader.GetEntryCount() > 100)
+        if(i % (dsReader.GetEntryCount() / 20) == 0)
           cerr << "*";
 
-      RAT::DS::Root* rds = dsReader.GetEvent(i);
+      const RAT::DS::Entry& rds = dsReader.GetEntry(i);
 
-      if(rds->GetEVCount()==0)
+      if(rds.GetEVCount()==0)
         continue;
 
-      RAT::DS::EV* ev = rds->GetEV( 0 );
-      RAT::DS::MC* mc = rds->GetMC();
-      RAT::DS::MCParticle* mcp = mc->GetMCParticle( 0 );
-      TVector3 mcPosition = mcp->GetPos();
+      const RAT::DS::EV& ev = rds.GetEV( 0 );
+      const RAT::DS::MC& mc = rds.GetMC();
+      const RAT::DS::MCParticle& mcp = mc.GetMCParticle( 0 );
+      TVector3 mcPosition = mcp.GetPosition();
 
       // Now get the different fit positions and compare
       
       for(unsigned int j=0; j<fitNames.size(); j++)
         {
-          RAT::DS::FitVertex fitVertex = ev->GetFitResult(fitNames[j]).GetVertex(0);
+          const RAT::DS::FitVertex fitVertex = ev.GetFitResult(fitNames[j]).GetVertex(0);
           TVector3 fitPosition = fitVertex.GetPosition();
           
           if(fitVertex.ContainsPosition() && fitVertex.ValidPosition())
@@ -127,29 +127,29 @@ void reportMisreconPosition(RAT::DSReader& dsReader, vector<string> fitNames, do
 
   if(sigma)
     {
-      for(int i=0; i<dsReader.GetTotal(); i++)
+      for(size_t i=0; i<dsReader.GetEntryCount(); i++)
         {
           
-          if(dsReader.GetTotal() > 100)
-            if(i % (dsReader.GetTotal() / 20) == 0)
+          if(dsReader.GetEntryCount() > 100)
+            if(i % (dsReader.GetEntryCount() / 20) == 0)
               cerr << "*";
           
-          RAT::DS::Root* rds = dsReader.GetEvent(i);
+          const RAT::DS::Entry& rds = dsReader.GetEntry(i);
           
-          if(rds->GetEVCount()==0)
+          if(rds.GetEVCount()==0)
             continue;
           
-          RAT::DS::EV* ev = rds->GetEV( 0 );
-          RAT::DS::MC* mc = rds->GetMC();
-          RAT::DS::MCParticle* mcp = mc->GetMCParticle( 0 );
-          TVector3 mcPosition = mcp->GetPos();
+          const RAT::DS::EV& ev = rds.GetEV( 0 );
+          const RAT::DS::MC& mc = rds.GetMC();
+          const RAT::DS::MCParticle& mcp = mc.GetMCParticle( 0 );
+          TVector3 mcPosition = mcp.GetPosition();
           
           // Now get the different fit positions and compare
           
           for(unsigned int j=0; j<fitNames.size(); j++)
             {
               
-              RAT::DS::FitVertex fitVertex = ev->GetFitResult(fitNames[j]).GetVertex(0);
+              const RAT::DS::FitVertex fitVertex = ev.GetFitResult(fitNames[j]).GetVertex(0);
               TVector3 fitPosition = fitVertex.GetPosition();
               
               if(fitVertex.ContainsPosition() && fitVertex.ValidPosition())

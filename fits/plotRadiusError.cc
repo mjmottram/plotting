@@ -1,5 +1,6 @@
 #include <rootPlotUtil.hh>
 
+#include <TROOT.h>
 #include <TH1F.h>
 #include <TGraph.h>
 #include <TCanvas.h>
@@ -8,8 +9,8 @@
 #include <TString.h>
 #include <TLatex.h>
 
-#include <RAT/DSReader.hh>
-#include <RAT/DS/Root.hh>
+#include <RAT/DU/DSReader.hh>
+#include <RAT/DS/Entry.hh>
 #include <RAT/DS/EV.hh>
 #include <RAT/DS/MC.hh>
 #include <RAT/DS/MCParticle.hh>
@@ -24,12 +25,12 @@
 void plotRadiusError(string fileName, string fitName, string plotName="", bool clear=true);
 void plotRadiusError(string fileName, vector<string> fitNames, const vector<string> plotNames = vector<string>(), bool clear=true);
 void plotRadiusError(vector<string> fileNames, vector<string> fitNames, const vector<string> plotNames = vector<string>(), bool clear=true);
-void plotRadiusError(RAT::DSReader& dsReader, vector<string> fitNames, vector<string> plotNames, bool clear=true);
+void plotRadiusError(RAT::DU::DSReader& dsReader, vector<string> fitNames, vector<string> plotNames, bool clear=true);
 
 
 void plotRadiusError(string fileName, string fitName, string plotName, bool clear)
 {
-  RAT::DSReader dsReader(fileName.c_str());
+  RAT::DU::DSReader dsReader(fileName.c_str());
   vector<string> fitNames;
   vector<string> plotNames;
   fitNames.push_back(fitName);
@@ -41,14 +42,14 @@ void plotRadiusError(string fileName, string fitName, string plotName, bool clea
 
 void plotRadiusError(string fileName, vector<string> fitNames, const vector<string> plotNames, bool clear)
 {
-  RAT::DSReader dsReader(fileName.c_str());
+  RAT::DU::DSReader dsReader(fileName.c_str());
   plotRadiusError(dsReader, fitNames, plotNames, clear);
 }
 
 
 void plotRadiusError(vector<string> fileNames, vector<string> fitNames, const vector<string> plotNames, bool clear)
 {
-  RAT::DSReader dsReader(fileNames[0].c_str());
+  RAT::DU::DSReader dsReader(fileNames[0].c_str());
   for(unsigned int i=1;i<fileNames.size();i++)
     dsReader.Add(fileNames[i].c_str());
   plotRadiusError(dsReader, fitNames, plotNames, clear);
@@ -57,7 +58,7 @@ void plotRadiusError(vector<string> fileNames, vector<string> fitNames, const ve
 
 // Plots errors on x, y, z and time.
 
-void plotRadiusError(RAT::DSReader& dsReader, vector<string> fitNames, vector<string> plotNames, bool clear)
+void plotRadiusError(RAT::DU::DSReader& dsReader, vector<string> fitNames, vector<string> plotNames, bool clear)
 {
   
   vector<TH1F*> histsRad;
@@ -73,30 +74,30 @@ void plotRadiusError(RAT::DSReader& dsReader, vector<string> fitNames, vector<st
       histsRad.push_back( CreateHist( "hRadErr"+plotNames[i], ";Radius "+rTitle, 100, -1000, 1000) );
     }
   
-  cout << "Total entries: " << dsReader.GetTotal() << endl;
+  cout << "Total entries: " << dsReader.GetEntryCount() << endl;
 
-  for(int i=0; i<dsReader.GetTotal(); i++)
+  for(size_t i=0; i<dsReader.GetEntryCount(); i++)
     {
 
-      if(dsReader.GetTotal() > 100)
-        if(i % (dsReader.GetTotal() / 20) == 0)
+      if(dsReader.GetEntryCount() > 100)
+        if(i % (dsReader.GetEntryCount() / 20) == 0)
           cerr << "*";
 
-      RAT::DS::Root* rds = dsReader.GetEvent(i);
+      const RAT::DS::Entry& rds = dsReader.GetEntry(i);
 
-      if(rds->GetEVCount()==0)
+      if(rds.GetEVCount()==0)
         continue;
 
-      RAT::DS::EV* ev = rds->GetEV( 0 );
-      RAT::DS::MC* mc = rds->GetMC();
-      RAT::DS::MCParticle* mcp = mc->GetMCParticle( 0 );
-      TVector3 mcPosition = mcp->GetPos();
+      const RAT::DS::EV& ev = rds.GetEV( 0 );
+      const RAT::DS::MC& mc = rds.GetMC();
+      const RAT::DS::MCParticle& mcp = mc.GetMCParticle( 0 );
+      TVector3 mcPosition = mcp.GetPosition();
 
       // Now get the different fit positions and compare
       
       for(unsigned int j=0; j<fitNames.size(); j++)
         {
-          RAT::DS::FitVertex fitVertex = ev->GetFitResult(fitNames[j]).GetVertex(0);
+          const RAT::DS::FitVertex fitVertex = ev.GetFitResult(fitNames[j]).GetVertex(0);
           TVector3 fitPosition = fitVertex.GetPosition();
           
           if(fitVertex.ContainsPosition() && fitVertex.ValidPosition())
