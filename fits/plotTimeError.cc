@@ -105,7 +105,7 @@ void plotTimeError(RAT::DU::DSReader& dsReader, vector<string> fitNames, vector<
           if(fitVertex.ContainsTime() && fitVertex.ValidTime())
             // will also test time
             {
-              histsT[j]->Fill(fitTime - ( mcTime + 390.0 - mcev.GetGlobalTriggerTime() ) );
+              histsT[j]->Fill(fitTime - ( mcTime + 390.0 - mcev.GetGTTime() ) );
             }
 
         }

@@ -104,7 +104,7 @@ void plotEnergyError(RAT::DU::DSReader& dsReader, vector<string> fitNames, vecto
 
       const RAT::DS::EV& ev = rds.GetEV( 0 );
       const RAT::DS::MC& mc = rds.GetMC();
-      double mcEnergy = mc.GetScintillatorEnergyDeposit();
+      double mcEnergy = mc.GetScintEnergyDeposit();
 
       // Now get the different fit positions and compare
       
