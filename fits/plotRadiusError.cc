@@ -100,7 +100,7 @@ void plotRadiusError(RAT::DU::DSReader& dsReader, vector<string> fitNames, vecto
           const RAT::DS::FitVertex fitVertex = ev.GetFitResult(fitNames[j]).GetVertex(0);
           TVector3 fitPosition = fitVertex.GetPosition();
           
-          if(fitVertex.ContainsPosition() && fitVertex.ValidPosition())
+          if(fitVertex.ContainsPosition() && (fitVertex.ValidPosition() || kIncludeInvalidFits))
             // will also test time
             {
               histsRad[j]->Fill(fitPosition.Mag() - mcPosition.Mag());

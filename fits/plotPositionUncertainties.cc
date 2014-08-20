@@ -105,7 +105,7 @@ void plotPositionUncertainties(RAT::DU::DSReader& dsReader, vector<string> fitNa
           const RAT::DS::FitVertex& fitVertex = ev.GetFitResult(fitNames[j]).GetVertex(0);
           TVector3 posPosErr = fitVertex.GetPositivePositionError();
           
-          if(fitVertex.ContainsPosition() && fitVertex.ValidPosition())
+          if(fitVertex.ContainsPosition() && (fitVertex.ValidPosition() || kIncludeInvalidFits))
             {
               histsX[j]->Fill(posPosErr.X());
               histsY[j]->Fill(posPosErr.Y());

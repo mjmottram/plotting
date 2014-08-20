@@ -123,8 +123,8 @@ void plotDrive(RAT::DU::DSReader& dsReader, vector<string> posFitNames, vector<s
 
           // For some fits may also need to consider whether the positions seed was valid
           
-          if( dirFitVertex.ContainsDirection() && dirFitVertex.ValidDirection() &&
-              posFitVertex.ContainsPosition() && posFitVertex.ValidPosition())
+          if( dirFitVertex.ContainsDirection() && (dirFitVertex.ValidDirection() || kIncludeInvalidFits) &&
+              posFitVertex.ContainsPosition() && (posFitVertex.ValidPosition() || kIncludeInvalidFits))
             {
               TVector3 fitDirection = dirFitVertex.GetDirection().Unit();
               TVector3 fitPosition = posFitVertex.GetPosition();

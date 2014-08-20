@@ -23,6 +23,7 @@ bool gPlottingLogX = false;
 bool gPlottingLogY = false;
 bool gPlottingLogZ = false;
 bool gStatOverflows = false;
+bool kIncludeInvalidFits = false;
 
 //////////////////////////////////////////////////
 // Arrange statistics boxes for multiple plots
@@ -66,6 +67,8 @@ TCanvas* CreateCan(string name, bool clear)
   TCanvas* c = (TCanvas*)gROOT->FindObject(name.c_str());
   if(c)
     {
+      if( !clear )
+        return c;
       delete c;
       c = NULL;
     }

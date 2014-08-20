@@ -133,7 +133,7 @@ void plotPositionError(RAT::DU::DSReader& dsReader, vector<string> fitNames, vec
           const RAT::DS::FitVertex fitVertex = ev.GetFitResult(fitNames[j]).GetVertex(0);
           TVector3 fitPosition = fitVertex.GetPosition();
           
-          if(fitVertex.ContainsPosition() && fitVertex.ValidPosition())
+          if(fitVertex.ContainsPosition() && (fitVertex.ValidPosition() || kIncludeInvalidFits))
             // will also test time
             {
               histsX[j]->Fill(fitPosition.X() - mcPosition.X());

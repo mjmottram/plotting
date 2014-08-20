@@ -96,7 +96,7 @@ void plotTimeUncertainties(RAT::DU::DSReader& dsReader, vector<string> fitNames,
           const RAT::DS::FitVertex fitVertex = ev.GetFitResult(fitNames[j]).GetVertex(0);
           double timeErr = fitVertex.GetPositiveTimeError();
           
-          if(fitVertex.ContainsTime() && fitVertex.ValidTime())
+          if(fitVertex.ContainsTime() && (fitVertex.ValidTime() || kIncludeInvalidFits))
             {
               histsT[j]->Fill(timeErr);
               if(timeErr > 1000)

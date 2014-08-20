@@ -105,6 +105,7 @@ void plotEnergyError(RAT::DU::DSReader& dsReader, vector<string> fitNames, vecto
       const RAT::DS::EV& ev = rds.GetEV( 0 );
       const RAT::DS::MC& mc = rds.GetMC();
       double mcEnergy = mc.GetScintEnergyDeposit();
+      //double mcEnergy = mc.GetMCParticle(0).GetKineticEnergy();
 
       // Now get the different fit positions and compare
       
@@ -115,7 +116,7 @@ void plotEnergyError(RAT::DU::DSReader& dsReader, vector<string> fitNames, vecto
 
           // For some fits may also need to consider whether the positions seed was valid
           
-          if(fitVertex.ContainsEnergy() && fitVertex.ValidEnergy())
+          if(fitVertex.ContainsEnergy() && (fitVertex.ValidEnergy() || kIncludeInvalidFits))
             {
               double fitEnergy = fitVertex.GetEnergy();
               histsEnergy[j]->Fill( fitEnergy - mcEnergy );

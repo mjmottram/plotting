@@ -24,4 +24,6 @@ extern bool gPlottingLogY;
 extern bool gPlottingLogZ;
 extern bool gStatOverflows;
 
+extern bool kIncludeInvalidFits;
+
 #endif

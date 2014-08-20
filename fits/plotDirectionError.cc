@@ -119,7 +119,7 @@ void plotDirectionError(RAT::DU::DSReader& dsReader, vector<string> fitNames, ve
 
           // For some fits may also need to consider whether the positions seed was valid
           
-          if(fitVertex.ContainsDirection() && fitVertex.ValidDirection())
+          if(fitVertex.ContainsDirection() && (fitVertex.ValidDirection() || kIncludeInvalidFits))
             {
               TVector3 fitDirection = fitVertex.GetDirection().Unit();
               histsDot[j]->Fill( fitDirection.Dot(mcDirection) );

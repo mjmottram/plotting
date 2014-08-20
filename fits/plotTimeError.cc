@@ -102,7 +102,7 @@ void plotTimeError(RAT::DU::DSReader& dsReader, vector<string> fitNames, vector<
           const RAT::DS::FitVertex fitVertex = ev.GetFitResult(fitNames[j]).GetVertex(0);          
           double fitTime = fitVertex.GetTime();
           
-          if(fitVertex.ContainsTime() && fitVertex.ValidTime())
+          if(fitVertex.ContainsTime() && (fitVertex.ValidTime() || kIncludeInvalidFits))
             // will also test time
             {
               histsT[j]->Fill(fitTime - ( mcTime + 390.0 - mcev.GetGTTime() ) );
