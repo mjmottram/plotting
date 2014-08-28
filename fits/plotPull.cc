@@ -74,10 +74,10 @@ void plotPull(RAT::DU::DSReader& dsReader, vector<string> fitNames, vector<strin
   TCanvas* canPullFit = CreateCan("canPullFit", clear);
   TCanvas* canPullFitFrac = CreateCan("canPullFitFrac", clear);
 
-  string pullMCTitle = " (#vec{r}_{Fit} - #vec{r}_{MC}).#hat{d}_{MC}";
-  string pullMCFracTitle = " (#vec{r}_{Fit} - #vec{r}_{MC}).#hat{d}_{MC} / #cbar #vec{r}_{Fit} - #vec{r}_{MC} #cbar";
-  string pullFitTitle = " (#vec{r}_{Fit} - #vec{r}_{MC}).#hat{d}_{Fit}";
-  string pullFitFracTitle = " (#vec{r}_{Fit} - #vec{r}_{MC}).#hat{d}_{Fit} / #cbar #vec{r}_{Fit} - #vec{r}_{MC} #cbar";
+  string pullMCTitle = " (#vec{r}_{Fit} - #vec{r}_{MC}).#hat{r}_{MC}";
+  string pullMCFracTitle = " (#vec{r}_{Fit} - #vec{r}_{MC}).#hat{r}_{MC} / #cbar #vec{r}_{Fit} - #vec{r}_{MC} #cbar";
+  string pullFitTitle = " (#vec{r}_{Fit} - #vec{r}_{MC}).#hat{r}_{Fit}";
+  string pullFitFracTitle = " (#vec{r}_{Fit} - #vec{r}_{MC}).#hat{r}_{Fit} / #cbar #vec{r}_{Fit} - #vec{r}_{MC} #cbar";
 
   if(plotNames.size()==0)
     plotNames = fitNames;
@@ -124,8 +124,8 @@ void plotPull(RAT::DU::DSReader& dsReader, vector<string> fitNames, vector<strin
               TVector3 fitPosition = fitVertex.GetPosition();
               TVector3 positionError = fitPosition - mcPosition;
 
-              double pullMC = positionError.Dot(mcPosition);
-              double pullFit = positionError.Dot(fitPosition);
+              double pullMC = positionError.Dot(mcPosition.Unit());
+              double pullFit = positionError.Dot(fitPosition.Unit());
 
               histsPullMC[j]->Fill( pullMC );
               histsPullMCFrac[j]->Fill( pullMC / positionError.Mag() );
