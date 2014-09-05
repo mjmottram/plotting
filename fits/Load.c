@@ -1,6 +1,6 @@
 {
-  gSystem->AddIncludePath(" -I${ROOTPLOTTING}/fits");
-  gROOT->ProcessLine(".L ${ROOTPLOTTING}/fits/rootPlotUtil.cc+");
+  gSystem->AddIncludePath(" -I${ROOTPLOTTING}");
+  gROOT->ProcessLine(".L ${ROOTPLOTTING}/rootPlotUtil.cc+");
   gROOT->ProcessLine(".L ${ROOTPLOTTING}/fits/plotDirectionError.cc+");
   gROOT->ProcessLine(".L ${ROOTPLOTTING}/fits/plotDrive.cc+");
   gROOT->ProcessLine(".L ${ROOTPLOTTING}/fits/plotPull.cc+");

@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 
+void ArrangeStatBox(TH1F* hHistogram, TCanvas* can);
 void ArrangeStatBox(TH1F* hHistogram, Int_t color, TVirtualPad* pad, std::string label="", double x1=-999, double x2=-999 );
 TCanvas* CreateCan(std::string name, bool clear=false);
 TH1F* CreateHist(std::string name, std::string title, int n, double x1, double x2);

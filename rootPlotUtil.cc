@@ -30,6 +30,14 @@ bool kIncludeInvalidFits = false;
 //////////////////////////////////////////////////
 
 void ArrangeStatBox(TH1F* hHistogram,
+		    TCanvas* can)
+{
+  // Update the canvas to ensure the stat box is available
+  can->Update();
+  ArrangeStatBox(hHistogram, hHistogram->GetLineColor(), can->cd());
+}
+
+void ArrangeStatBox(TH1F* hHistogram,
                     Int_t color,
                     TVirtualPad* pad,
                     string label,

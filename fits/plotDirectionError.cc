@@ -121,8 +121,12 @@ void plotDirectionError(RAT::DU::DSReader& dsReader, vector<string> fitNames, ve
           
           if(fitVertex.ContainsDirection() && (fitVertex.ValidDirection() || kIncludeInvalidFits))
             {
-              TVector3 fitDirection = fitVertex.GetDirection().Unit();
-              histsDot[j]->Fill( fitDirection.Dot(mcDirection) );
+              // Assume the fit direction has been normalised
+              // any other result is wrong!
+              double dotProduct = fitVertex.GetDirection().Dot(mcDirection);
+              if(fabs(dotProduct)>1)
+                cerr << "|Dot product| is > 1: " << dotProduct << endl;
+              histsDot[j]->Fill( dotProduct );
             }
         }
 
