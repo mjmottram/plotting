@@ -25,10 +25,28 @@ extern int kDriveBins = 100;
 extern double kDriveLow = -1000;
 extern double kDriveHigh = 1000;
 
+void printDriveCanvases(string filePrefix);
 void plotDrive(string fileName, string posFitName, string dirFitName, string plotName="", bool clear=true);
 void plotDrive(string fileName, vector<string> posFitNames, vector<string> dirFitNames, const vector<string> plotNames = vector<string>(), bool clear=true);
 void plotDrive(vector<string> fileNames, vector<string> posFitNames, vector<string> dirFitNames, const vector<string> plotNames = vector<string>(), bool clear=true);
 void plotDrive(RAT::DU::DSReader& dsReader, vector<string> posFitNames, vector<string> dirFitNames, vector<string> plotNames, bool clear=true);
+
+void printDriveCanvases(string filePrefix)
+{
+
+  vector<TCanvas*> canvases;
+  vector<string> names;
+  canvases.push_back((TCanvas*)gROOT->FindObject( "canDriveMC" ));
+  canvases.push_back((TCanvas*)gROOT->FindObject( "canDriveMCFrac" ));
+  canvases.push_back((TCanvas*)gROOT->FindObject( "canDriveFit" ));
+  canvases.push_back((TCanvas*)gROOT->FindObject( "canDriveFitFrac" ));
+  names.push_back( "DriveMC" );
+  names.push_back( "DriveMCFrac" );
+  names.push_back( "DriveFit" );
+  names.push_back( "DriveFitFrac" );
+  PrintCanvases(canvases, filePrefix, names);
+
+}
 
 
 void plotDrive(string fileName, string posFitName, string dirFitName, string plotName, bool clear)
@@ -158,25 +176,25 @@ void plotDrive(RAT::DU::DSReader& dsReader, vector<string> posFitNames, vector<s
       histsDriveMC[i]->SetLineColor(GetColor(firstDraw));
       histsDriveMC[i]->Draw(draw.c_str());
       canDriveMC->Update();
-      ArrangeStatBox(histsDriveMC[i], GetColor(firstDraw), cPadDriveMC, plotNames[i]);
+      ArrangeStatBox(histsDriveMC[i], GetColor(firstDraw), cPadDriveMC, plotNames[i], 0.15, 0.35);
 
       TVirtualPad* cPadDriveMCFrac = canDriveMCFrac->cd();
       histsDriveMCFrac[i]->SetLineColor(GetColor(firstDraw));
       histsDriveMCFrac[i]->Draw(draw.c_str());
       canDriveMCFrac->Update();
-      ArrangeStatBox(histsDriveMCFrac[i], GetColor(firstDraw), cPadDriveMCFrac, plotNames[i]);
+      ArrangeStatBox(histsDriveMCFrac[i], GetColor(firstDraw), cPadDriveMCFrac, plotNames[i], 0.15, 0.35);
 
       TVirtualPad* cPadDriveFit = canDriveFit->cd();
       histsDriveFit[i]->SetLineColor(GetColor(firstDraw));
       histsDriveFit[i]->Draw(draw.c_str());
       canDriveFit->Update();
-      ArrangeStatBox(histsDriveFit[i], GetColor(firstDraw), cPadDriveFit, plotNames[i]);
+      ArrangeStatBox(histsDriveFit[i], GetColor(firstDraw), cPadDriveFit, plotNames[i], 0.15, 0.35);
 
       TVirtualPad* cPadDriveFitFrac = canDriveFitFrac->cd();
       histsDriveFitFrac[i]->SetLineColor(GetColor(firstDraw));
       histsDriveFitFrac[i]->Draw(draw.c_str());
       canDriveFitFrac->Update();
-      ArrangeStatBox(histsDriveFitFrac[i], GetColor(firstDraw), cPadDriveFitFrac, plotNames[i]);
+      ArrangeStatBox(histsDriveFitFrac[i], GetColor(firstDraw), cPadDriveFitFrac, plotNames[i], 0.15, 0.35);
 
       firstDraw++;
 
