@@ -115,6 +115,12 @@ void plotDirectionError(RAT::DU::DSReader& dsReader, vector<string> fitNames, ve
       for(unsigned int j=0; j<fitNames.size(); j++)
         {
 
+          if(!ev.FitResultExists(fitNames[j]))
+          {
+              cout << "Warning: no result for " << fitNames[j] << endl;
+              continue;
+          }
+
           const RAT::DS::FitVertex& fitVertex = ev.GetFitResult(fitNames[j]).GetVertex(0);
 
           // For some fits may also need to consider whether the positions seed was valid
@@ -125,9 +131,11 @@ void plotDirectionError(RAT::DU::DSReader& dsReader, vector<string> fitNames, ve
               // any other result is wrong!
               double dotProduct = fitVertex.GetDirection().Dot(mcDirection);
               if(fabs(dotProduct)>1)
-                cerr << "|Dot product| is > 1: " << dotProduct << endl;
+                  cerr << "|Dot product| is > 1: " << dotProduct << endl;
               histsDot[j]->Fill( dotProduct );
             }
+          else
+              cout << "Warning: direction invalid or not present " << fitNames[i] << endl;
         }
 
     }

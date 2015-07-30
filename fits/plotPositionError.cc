@@ -129,20 +129,27 @@ void plotPositionError(RAT::DU::DSReader& dsReader, vector<string> fitNames, vec
       // Now get the different fit positions and compare
       
       for(unsigned int j=0; j<fitNames.size(); j++)
-        {
+      {
+
+          if(!ev.FitResultExists(fitNames[j]))
+          {
+              cout << "Warning: no result for " << fitNames[j] << endl;
+              continue;
+          }
+              
           const RAT::DS::FitVertex fitVertex = ev.GetFitResult(fitNames[j]).GetVertex(0);
           TVector3 fitPosition = fitVertex.GetPosition();
           
           if(fitVertex.ContainsPosition() && (fitVertex.ValidPosition() || kIncludeInvalidFits))
-            // will also test time
-            {
+          {
+              // will also test time
               histsX[j]->Fill(fitPosition.X() - mcPosition.X());
               histsY[j]->Fill(fitPosition.Y() - mcPosition.Y());
               histsZ[j]->Fill(fitPosition.Z() - mcPosition.Z());
               histsR[j]->Fill((fitPosition - mcPosition).Mag());
-            }
+          }
           else
-            nFailed[j]++;
+              nFailed[j]++;
 
         }
       

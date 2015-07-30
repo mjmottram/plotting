@@ -14,4 +14,5 @@
   gROOT->ProcessLine(".L ${ROOTPLOTTING}/fits/reportMisreconPosition.cc+");
   gROOT->ProcessLine(".L ${ROOTPLOTTING}/fits/summariseError.cc+"); 
   gROOT->ProcessLine(".L ${ROOTPLOTTING}/fits/checkValidity.cc+");
+  gROOT->ProcessLine(".L ${ROOTPLOTTING}/fits/plotPosition.cc+");
 }

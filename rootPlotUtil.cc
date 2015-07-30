@@ -49,9 +49,14 @@ void ArrangeStatBox(TH1F* hHistogram,
   while( TObject *obj = next() )
     {
       if( obj->GetName() == string( "stats" ) )
-	numStats++;
+        numStats++;
     }
   TPaveStats *sBox = (TPaveStats*)hHistogram->GetListOfFunctions()->FindObject("stats");
+  if(!sBox)
+    {
+      cout << "ArrangeStatBox::no stat box to move! Did you plot with S (or SAMES)" << endl;
+      return;
+    }
   hHistogram->GetListOfFunctions()->Remove( sBox );
   hHistogram->SetStats( 0 );
   sBox->SetLineColor( color );
@@ -130,13 +135,23 @@ void Normalise(TH1F* hist)
 {
   double sum = hist->GetSumOfWeights(); // should really do sumofweights
   for(int i=0;i<hist->GetNbinsX();i++)
-    hist->SetBinContent(i+1, hist->GetBinContent(i+1) / sum);
+    {
+      double content = hist->GetBinContent(i+1) / sum;
+      double error = hist->GetBinError(i+1) / sum;
+      hist->SetBinContent(i+1, content );
+      hist->SetBinError(i+1, error);
+    }
 }
 void Normalise(TH1D* hist)
 {
   double sum = hist->GetSumOfWeights(); // should really do sumofweights
   for(int i=0;i<hist->GetNbinsX();i++)
-    hist->SetBinContent(i+1, hist->GetBinContent(i+1) / sum);
+    {
+      double content = hist->GetBinContent(i+1) / sum;
+      double error = hist->GetBinError(i+1) / sum;
+      hist->SetBinContent(i+1, content );
+      hist->SetBinError(i+1, error);
+    }
 }
 
 //////////////////////////////////////////////////

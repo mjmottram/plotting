@@ -1,11 +1,12 @@
+#include <rootPlotUtil.hh>
+
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
 #include <algorithm>
 
-#include <RAT/DS/Run.hh>
-#include <RAT/DS/Root.hh>
+#include <RAT/Log.hh>
 #include <RAT/DB.hh>
 #include <RAT/DBLink.hh>
 
@@ -62,6 +63,9 @@ void plotET1D(vector<string> indexes)
   TCanvas *can = new TCanvas("canET1D", "canET1D");
   can->cd();
 
+  TLegend *legend = new TLegend(0.6, 0.7, 0.9, 0.9);
+  legend->SetFillColor(0);
+
   for(unsigned int i=0; i<indexes.size(); i++)
     {
       RAT::DBLinkPtr ET1D = RAT::DB::Get()->GetLink("ET1D", indexes[i]);
@@ -78,10 +82,18 @@ void plotET1D(vector<string> indexes)
 
       graphs.push_back( gr );
 
-      gr->Draw("al");
+      if(i==0)
+          gr->Draw("al");
+      else
+          gr->Draw("l");
       gr->SetName(("gET1D" + indexes[i]).c_str());
+      gr->SetLineColor(GetColor(i));
+
+      legend->AddEntry(gr, indexes[i].c_str(), "l");
 
     }
+
+  legend->Draw();
 
 }
 
