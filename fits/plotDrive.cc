@@ -26,9 +26,9 @@ extern double kDriveLow = -1000;
 extern double kDriveHigh = 1000;
 
 void printDriveCanvases(string filePrefix);
-void plotDrive(string fileName, string posFitName, string dirFitName, string plotName="", bool clear=true);
-void plotDrive(string fileName, vector<string> posFitNames, vector<string> dirFitNames, const vector<string> plotNames = vector<string>(), bool clear=true);
-void plotDrive(vector<string> fileNames, vector<string> posFitNames, vector<string> dirFitNames, const vector<string> plotNames = vector<string>(), bool clear=true);
+void plotDrive(string fileName, string posFitName, string dirFitName="", string plotName="", bool clear=true);
+void plotDrive(string fileName, vector<string> posFitNames, vector<string> dirFitNames = vector<string>(), const vector<string> plotNames = vector<string>(), bool clear=true);
+void plotDrive(vector<string> fileNames, vector<string> posFitNames, vector<string> dirFitNames = vector<string>(), const vector<string> plotNames = vector<string>(), bool clear=true);
 void plotDrive(RAT::DU::DSReader& dsReader, vector<string> posFitNames, vector<string> dirFitNames, vector<string> plotNames, bool clear=true);
 
 void printDriveCanvases(string filePrefix)
@@ -38,12 +38,17 @@ void printDriveCanvases(string filePrefix)
   vector<string> names;
   canvases.push_back((TCanvas*)gROOT->FindObject( "canDriveMC" ));
   canvases.push_back((TCanvas*)gROOT->FindObject( "canDriveMCFrac" ));
-  canvases.push_back((TCanvas*)gROOT->FindObject( "canDriveFit" ));
-  canvases.push_back((TCanvas*)gROOT->FindObject( "canDriveFitFrac" ));
   names.push_back( "DriveMC" );
   names.push_back( "DriveMCFrac" );
-  names.push_back( "DriveFit" );
-  names.push_back( "DriveFitFrac" );
+
+  if(gROOT->FindObject("canDriveFit"))
+    {
+      canvases.push_back((TCanvas*)gROOT->FindObject( "canDriveFit" ));
+      canvases.push_back((TCanvas*)gROOT->FindObject( "canDriveFitFrac" ));
+      names.push_back( "DriveFit" );
+      names.push_back( "DriveFitFrac" );
+    }
+
   PrintCanvases(canvases, filePrefix, names);
 
 }
@@ -91,8 +96,13 @@ void plotDrive(RAT::DU::DSReader& dsReader, vector<string> posFitNames, vector<s
 
   TCanvas* canDriveMC = CreateCan("canDriveMC", clear);
   TCanvas* canDriveMCFrac = CreateCan("canDriveMCFrac", clear);
-  TCanvas* canDriveFit = CreateCan("canDriveFit", clear);
-  TCanvas* canDriveFitFrac = CreateCan("canDriveFitFrac", clear);
+  TCanvas* canDriveFit = NULL;
+  TCanvas* canDriveFitFrac = NULL;
+  if( dirFitNames[0] != "" )
+    {
+      canDriveFit = CreateCan("canDriveFit", clear);
+      canDriveFitFrac = CreateCan("canDriveFitFrac", clear);
+    }
 
   string driveMCTitle = " (#vec{r}_{Fit} - #vec{r}_{MC}).#hat{d}_{MC}";
   string driveMCFracTitle = " (#vec{r}_{Fit} - #vec{r}_{MC}).#hat{d}_{MC} / #cbar #vec{r}_{Fit} - #vec{r}_{MC} #cbar";
@@ -110,7 +120,13 @@ void plotDrive(RAT::DU::DSReader& dsReader, vector<string> posFitNames, vector<s
       histsDriveFit.push_back( CreateHist( "hDriveFit"+plotNames[i], ";"+driveFitTitle, kDriveBins, kDriveLow, kDriveHigh) );
       histsDriveFitFrac.push_back( CreateHist( "hDriveFitFrac"+plotNames[i], ";"+driveFitFracTitle, 200, -1, 1) );
     }
-  
+
+  for(unsigned int i=0; i<dirFitNames.size(); i++)
+    {
+      if( dirFitNames[i] == "" )
+        cout << "Note: NOT using direction fit" << endl;
+    }
+
   cout << "Total entries: " << dsReader.GetEntryCount() << endl;
 
   for(size_t i=0; i<dsReader.GetEntryCount(); i++)
@@ -137,23 +153,31 @@ void plotDrive(RAT::DU::DSReader& dsReader, vector<string> posFitNames, vector<s
         {
 
           const RAT::DS::FitVertex& posFitVertex = ev.GetFitResult(posFitNames[j]).GetVertex(0);
-          const RAT::DS::FitVertex& dirFitVertex = ev.GetFitResult(dirFitNames[j]).GetVertex(0);
+          RAT::DS::FitVertex dirFitVertex = ev.GetFitResult(posFitNames[j]).GetVertex(0);
+          // Only plot the dirFit if we specified it
+          if( j<dirFitNames.size() && dirFitNames[j] != "" )
+            dirFitVertex = ev.GetFitResult(dirFitNames[j]).GetVertex(0);
 
           // For some fits may also need to consider whether the positions seed was valid
-          
-          if( dirFitVertex.ContainsDirection() && (dirFitVertex.ValidDirection() || kIncludeInvalidFits) &&
-              posFitVertex.ContainsPosition() && (posFitVertex.ValidPosition() || kIncludeInvalidFits))
+          if( posFitVertex.ContainsPosition() && (posFitVertex.ValidPosition() || kIncludeInvalidFits ))
             {
-              TVector3 fitDirection = dirFitVertex.GetDirection().Unit();
               TVector3 fitPosition = posFitVertex.GetPosition();
               TVector3 positionError = fitPosition - mcPosition;
               double driveMC = positionError.Dot(mcDirection);
-              double driveFit = positionError.Dot(fitDirection);
               histsDriveMC[j]->Fill( driveMC );
               histsDriveMCFrac[j]->Fill( driveMC / positionError.Mag() );
 
-              histsDriveFit[j]->Fill( driveFit );
-              histsDriveFitFrac[j]->Fill( driveFit / positionError.Mag() );
+              if( j<dirFitNames.size() && dirFitNames[j] != "" )
+                {
+                  if( dirFitVertex.ContainsDirection() && (dirFitVertex.ValidDirection() || kIncludeInvalidFits))
+                    {
+                      // Only plot the dirFit if we specified it
+                      TVector3 fitDirection = dirFitVertex.GetDirection().Unit();
+                      double driveFit = positionError.Dot(fitDirection);
+                      histsDriveFit[j]->Fill( driveFit );
+                      histsDriveFitFrac[j]->Fill( driveFit / positionError.Mag() );
+                    }
+                }
             }
         }
       
@@ -184,17 +208,20 @@ void plotDrive(RAT::DU::DSReader& dsReader, vector<string> posFitNames, vector<s
       canDriveMCFrac->Update();
       ArrangeStatBox(histsDriveMCFrac[i], GetColor(firstDraw), cPadDriveMCFrac, plotNames[i], 0.15, 0.35);
 
-      TVirtualPad* cPadDriveFit = canDriveFit->cd();
-      histsDriveFit[i]->SetLineColor(GetColor(firstDraw));
-      histsDriveFit[i]->Draw(draw.c_str());
-      canDriveFit->Update();
-      ArrangeStatBox(histsDriveFit[i], GetColor(firstDraw), cPadDriveFit, plotNames[i], 0.15, 0.35);
-
-      TVirtualPad* cPadDriveFitFrac = canDriveFitFrac->cd();
-      histsDriveFitFrac[i]->SetLineColor(GetColor(firstDraw));
-      histsDriveFitFrac[i]->Draw(draw.c_str());
-      canDriveFitFrac->Update();
-      ArrangeStatBox(histsDriveFitFrac[i], GetColor(firstDraw), cPadDriveFitFrac, plotNames[i], 0.15, 0.35);
+      if( i<dirFitNames.size() && dirFitNames[i] != "" )
+        {
+          TVirtualPad* cPadDriveFit = canDriveFit->cd();
+          histsDriveFit[i]->SetLineColor(GetColor(firstDraw));
+          histsDriveFit[i]->Draw(draw.c_str());
+          canDriveFit->Update();
+          ArrangeStatBox(histsDriveFit[i], GetColor(firstDraw), cPadDriveFit, plotNames[i], 0.15, 0.35);
+          
+          TVirtualPad* cPadDriveFitFrac = canDriveFitFrac->cd();
+          histsDriveFitFrac[i]->SetLineColor(GetColor(firstDraw));
+          histsDriveFitFrac[i]->Draw(draw.c_str());
+          canDriveFitFrac->Update();
+          ArrangeStatBox(histsDriveFitFrac[i], GetColor(firstDraw), cPadDriveFitFrac, plotNames[i], 0.15, 0.35);
+        }
 
       firstDraw++;
 
@@ -202,7 +229,10 @@ void plotDrive(RAT::DU::DSReader& dsReader, vector<string> posFitNames, vector<s
   
   ScaleHists(canDriveMC, true);
   ScaleHists(canDriveMCFrac, true);
-  ScaleHists(canDriveFit, true);
-  ScaleHists(canDriveFitFrac, true);
+  if( dirFitNames[0] != "" )
+    {
+      ScaleHists(canDriveFit, true);
+      ScaleHists(canDriveFitFrac, true);
+    }
 
 }

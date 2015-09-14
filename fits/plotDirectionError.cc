@@ -91,8 +91,6 @@ void plotDirectionError(RAT::DU::DSReader& dsReader, vector<string> fitNames, ve
       histsDot.push_back( CreateHist( "hDirErr"+plotNames[i], ";"+xTitle, kDirectionErrorBins, kDirectionErrorLow, kDirectionErrorHigh) );
     }
   
-  cout << "Total entries: " << dsReader.GetEntryCount() << endl;
-
   for(size_t i=0; i<dsReader.GetEntryCount(); i++)
     {
 
@@ -135,7 +133,7 @@ void plotDirectionError(RAT::DU::DSReader& dsReader, vector<string> fitNames, ve
               histsDot[j]->Fill( dotProduct );
             }
           else
-              cout << "Warning: direction invalid or not present " << fitNames[i] << endl;
+              cout << "Warning: direction invalid or not present " << fitNames[j] << endl;
         }
 
     }

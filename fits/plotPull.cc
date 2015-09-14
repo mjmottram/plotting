@@ -25,10 +25,24 @@ extern int kPullBins = 100;
 extern double kPullLow = -1000;
 extern double kPullHigh = 1000;
 
+void printPullCanvases(string filePrefix);
 void plotPull(string fileName, string fitName, string plotName="", bool clear=true);
 void plotPull(string fileName, vector<string> fitNames, const vector<string> plotNames = vector<string>(), bool clear=true);
 void plotPull(vector<string> fileNames, vector<string> fitNames, const vector<string> plotNames = vector<string>(), bool clear=true);
 void plotPull(RAT::DU::DSReader& dsReader, vector<string> fitNames, vector<string> plotNames, bool clear=true);
+
+void printPullCanvases(string filePrefix)
+{
+
+  vector<TCanvas*> canvases;
+  vector<string> names;
+  canvases.push_back((TCanvas*)gROOT->FindObject( "canPull" ));
+  canvases.push_back((TCanvas*)gROOT->FindObject( "canPullFrac" ));
+  names.push_back( "Pull" );
+  names.push_back( "PullFrac" );
+  PrintCanvases(canvases, filePrefix, names);
+
+}
 
 
 void plotPull(string fileName, string fitName, string plotName, bool clear)
@@ -64,20 +78,14 @@ void plotPull(vector<string> fileNames, vector<string> fitNames, const vector<st
 void plotPull(RAT::DU::DSReader& dsReader, vector<string> fitNames, vector<string> plotNames, bool clear)
 {
 
-  vector<TH1F*> histsPullMC;
-  vector<TH1F*> histsPullMCFrac;
-  vector<TH1F*> histsPullFit;
-  vector<TH1F*> histsPullFitFrac;
+  vector<TH1F*> histsPull;
+  vector<TH1F*> histsPullFrac;
 
-  TCanvas* canPullMC = CreateCan("canPullMC", clear);
-  TCanvas* canPullMCFrac = CreateCan("canPullMCFrac", clear);
-  TCanvas* canPullFit = CreateCan("canPullFit", clear);
-  TCanvas* canPullFitFrac = CreateCan("canPullFitFrac", clear);
+  TCanvas* canPull = CreateCan("canPull", clear);
+  TCanvas* canPullFrac = CreateCan("canPullFrac", clear);
 
-  string pullMCTitle = " (#vec{r}_{Fit} - #vec{r}_{MC}).#hat{r}_{MC}";
-  string pullMCFracTitle = " (#vec{r}_{Fit} - #vec{r}_{MC}).#hat{r}_{MC} / #cbar #vec{r}_{Fit} - #vec{r}_{MC} #cbar";
-  string pullFitTitle = " (#vec{r}_{Fit} - #vec{r}_{MC}).#hat{r}_{Fit}";
-  string pullFitFracTitle = " (#vec{r}_{Fit} - #vec{r}_{MC}).#hat{r}_{Fit} / #cbar #vec{r}_{Fit} - #vec{r}_{MC} #cbar";
+  string pullTitle = " (#vec{r}_{Fit} - #vec{r}_{MC}).#hat{r}";
+  string pullFracTitle = " (#vec{r}_{Fit} - #vec{r}_{MC}).#hat{r} / #cbar #vec{r}_{Fit} - #vec{r}_{MC} #cbar";
 
   if(plotNames.size()==0)
     plotNames = fitNames;
@@ -85,12 +93,10 @@ void plotPull(RAT::DU::DSReader& dsReader, vector<string> fitNames, vector<strin
   for(unsigned int i=0; i<fitNames.size(); i++)
     {
       // first, check and delete any current hists
-      histsPullMC.push_back( CreateHist( "hPullMC"+plotNames[i], ";"+pullMCTitle, kPullBins, kPullLow, kPullHigh) );
-      histsPullMCFrac.push_back( CreateHist( "hPullMCFrac"+plotNames[i], ";"+pullMCFracTitle, 200, -1, 1) );
-      histsPullFit.push_back( CreateHist( "hPullFit"+plotNames[i], ";"+pullFitTitle, kPullBins, kPullLow, kPullHigh) );
-      histsPullFitFrac.push_back( CreateHist( "hPullFitFrac"+plotNames[i], ";"+pullFitFracTitle, 200, -1, 1) );
+      histsPull.push_back( CreateHist( "hPull"+plotNames[i], ";"+pullTitle, kPullBins, kPullLow, kPullHigh) );
+      histsPullFrac.push_back( CreateHist( "hPullFrac"+plotNames[i], ";"+pullFracTitle, 200, -1, 1) );
     }
-  
+
   cout << "Total entries: " << dsReader.GetEntryCount() << endl;
 
   for(size_t i=0; i<dsReader.GetEntryCount(); i++)
@@ -118,20 +124,14 @@ void plotPull(RAT::DU::DSReader& dsReader, vector<string> fitNames, vector<strin
           const RAT::DS::FitVertex& fitVertex = ev.GetFitResult(fitNames[j]).GetVertex(0);
 
           // For some fits may also need to consider whether the positions seed was valid
-          
-          if( fitVertex.ContainsPosition() && (fitVertex.ValidPosition() || kIncludeInvalidFits))
+          if( fitVertex.ContainsPosition() && (fitVertex.ValidPosition() || kIncludeInvalidFits ))
             {
               TVector3 fitPosition = fitVertex.GetPosition();
               TVector3 positionError = fitPosition - mcPosition;
-
               double pullMC = positionError.Dot(mcPosition.Unit());
-              double pullFit = positionError.Dot(fitPosition.Unit());
+              histsPull[j]->Fill( pullMC );
+              histsPullFrac[j]->Fill( pullMC / positionError.Mag() );
 
-              histsPullMC[j]->Fill( pullMC );
-              histsPullMCFrac[j]->Fill( pullMC / positionError.Mag() );
-
-              histsPullFit[j]->Fill( pullFit );
-              histsPullFitFrac[j]->Fill( pullFit / positionError.Mag() );
             }
         }
       
@@ -150,37 +150,23 @@ void plotPull(RAT::DU::DSReader& dsReader, vector<string> fitNames, vector<strin
       if(firstDraw>0)
         draw = "SAMES";
 
-      TVirtualPad* cPadPullMC = canPullMC->cd();
-      histsPullMC[i]->SetLineColor(GetColor(firstDraw));
-      histsPullMC[i]->Draw(draw.c_str());
-      canPullMC->Update();
-      ArrangeStatBox(histsPullMC[i], GetColor(firstDraw), cPadPullMC, plotNames[i]);
+      TVirtualPad* cPadPull = canPull->cd();
+      histsPull[i]->SetLineColor(GetColor(firstDraw));
+      histsPull[i]->Draw(draw.c_str());
+      canPull->Update();
+      ArrangeStatBox(histsPull[i], GetColor(firstDraw), cPadPull, plotNames[i], 0.15, 0.35);
 
-      TVirtualPad* cPadPullMCFrac = canPullMCFrac->cd();
-      histsPullMCFrac[i]->SetLineColor(GetColor(firstDraw));
-      histsPullMCFrac[i]->Draw(draw.c_str());
-      canPullMCFrac->Update();
-      ArrangeStatBox(histsPullMCFrac[i], GetColor(firstDraw), cPadPullMCFrac, plotNames[i]);
-
-      TVirtualPad* cPadPullFit = canPullFit->cd();
-      histsPullFit[i]->SetLineColor(GetColor(firstDraw));
-      histsPullFit[i]->Draw(draw.c_str());
-      canPullFit->Update();
-      ArrangeStatBox(histsPullFit[i], GetColor(firstDraw), cPadPullFit, plotNames[i]);
-
-      TVirtualPad* cPadPullFitFrac = canPullFitFrac->cd();
-      histsPullFitFrac[i]->SetLineColor(GetColor(firstDraw));
-      histsPullFitFrac[i]->Draw(draw.c_str());
-      canPullFitFrac->Update();
-      ArrangeStatBox(histsPullFitFrac[i], GetColor(firstDraw), cPadPullFitFrac, plotNames[i]);
+      TVirtualPad* cPadPullFrac = canPullFrac->cd();
+      histsPullFrac[i]->SetLineColor(GetColor(firstDraw));
+      histsPullFrac[i]->Draw(draw.c_str());
+      canPullFrac->Update();
+      ArrangeStatBox(histsPullFrac[i], GetColor(firstDraw), cPadPullFrac, plotNames[i], 0.15, 0.35);
 
       firstDraw++;
 
     }
   
-  ScaleHists(canPullMC, true);
-  ScaleHists(canPullMCFrac, true);
-  ScaleHists(canPullFit, true);
-  ScaleHists(canPullFitFrac, true);
+  ScaleHists(canPull, true);
+  ScaleHists(canPullFrac, true);
 
 }
