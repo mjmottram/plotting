@@ -77,8 +77,8 @@ void plotET1D(vector<string> indexes)
   
       TGraph *gr = new TGraph();
 
-      for(int i=0;i<times.size();i++)
-        gr->SetPoint(i, times[i], probability[i]);      
+      for(int iTime=0;iTime<times.size();iTime++)
+        gr->SetPoint(iTime, times[iTime], probability[iTime]);      
 
       graphs.push_back( gr );
 
@@ -127,8 +127,8 @@ void plotGV1D(vector<string> indexes)
   
       TGraph *gr = new TGraph();
 
-      for(int i=0;i<times.size();i++)
-        gr->SetPoint(i, times[i], probability[i]);      
+      for(int iTime=0;iTime<times.size();iTime++)
+        gr->SetPoint(iTime, times[iTime], probability[iTime]);      
 
       graphs.push_back( gr );
 
@@ -179,8 +179,8 @@ void plotFitDir(vector<string> indexes)
   
       TGraph *gr = new TGraph();
 
-      for(int i=0;i<times.size();i++)
-        gr->SetPoint(i, times[i], probability[i]);      
+      for(int iTime=0;iTime<times.size();iTime++)
+        gr->SetPoint(iTime, times[iTime], probability[iTime]);      
 
       graphs.push_back( gr );
 
@@ -198,3 +198,29 @@ void plotFitDir(vector<string> indexes)
 
 
 }
+
+
+
+void plotTwoPar(string type, string index, string xpars, string ypars)
+{
+
+  initDB();
+
+  TCanvas* can = new TCanvas("canTwoPars", "canTwoPars");
+
+  RAT::DBLinkPtr dbLink = RAT::DB::Get()->GetLink(type, index);
+  vector<double> xvals = dbLink->GetDArray(xpars);
+  vector<double> yvals = dbLink->GetDArray(ypars);
+  
+  TGraph *gr = new TGraph();
+
+  for(int i=0;i<xvals.size();i++)
+    gr->SetPoint(i, xvals[i], yvals[i]);      
+
+  gr->GetXaxis()->SetTitle(xpars.c_str());
+  gr->GetYaxis()->SetTitle(ypars.c_str());
+  gr->SetMarkerStyle(23);
+  gr->Draw("ap");
+
+}
+

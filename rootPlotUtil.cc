@@ -117,13 +117,15 @@ TH1F* CreateHist(string name, string title, int n, double x1, double x2)
 
 Int_t GetColor(int i)
 {
-  const int gNColors = 5;
-  Int_t gColors[gNColors] = {kBlack, kRed+1, kBlue+2, kGreen+2, kMagenta+1};
+  const int gNColors = 22;
+  Int_t gColors[gNColors] = {kBlack, kRed+1, kGreen+2, kBlue+1, 5, 6, 7, 8, 9, 40, 30, 41, 33, 42, 43, 34, 45, 46, 47, 48, 49, 38};
   int col = i;
-  if(i>gNColors)
+  if(i>gNColors-1)
     cerr << "Cannot get color, index of of range" << endl;
   else
     col = gColors[i];
+  if(col==kWhite || col==10)
+    col += 1;
   return col;
 }
 
